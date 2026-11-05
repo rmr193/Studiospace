@@ -21,6 +21,7 @@ import {
   X,
   Zap,
   Award,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Studio, BookedSlot } from "@/types";
@@ -75,6 +76,27 @@ export default function StudioDetailsPage() {
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  const handleShare = async () => {
+    if (!studio) return;
+    const url = typeof window !== "undefined" ? window.location.href : "";
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: studio.title,
+          text: `Check out ${studio.title} on StudioSpace!`,
+          url,
+        });
+        return;
+      } catch {
+        // Fall back to clipboard
+      }
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+      toast.success("Studio link copied to clipboard!");
+    }
+  };
 
   const isWishlisted = Boolean(studio && user?.wishlist?.includes(studio._id));
 
@@ -243,18 +265,30 @@ export default function StudioDetailsPage() {
           <span>Back to All Production Studios</span>
         </Link>
 
-        <button
-          type="button"
-          onClick={() => toggleWishlist(studio._id)}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-            isWishlisted
-              ? "bg-rose-500/10 border-rose-500/40 text-rose-600 dark:text-rose-400"
-              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500"
-          }`}
-        >
-          <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current text-rose-500" : ""}`} />
-          <span>{isWishlisted ? "Saved in Wishlist" : "Save to Wishlist"}</span>
-        </button>
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={handleShare}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500 transition-all"
+            title="Share this workspace"
+          >
+            <Share2 className="w-4 h-4 text-brand-500" />
+            <span>Share</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => toggleWishlist(studio._id)}
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+              isWishlisted
+                ? "bg-rose-500/10 border-rose-500/40 text-rose-600 dark:text-rose-400"
+                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:border-brand-500"
+            }`}
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current text-rose-500" : ""}`} />
+            <span>{isWishlisted ? "Saved in Wishlist" : "Save to Wishlist"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Studio Gallery Carousel */}
