@@ -54,6 +54,12 @@ export function initBetterAuth(db) {
         },
       },
     },
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: process.env.NODE_ENV === "production" || process.env.RENDER ? "none" : "lax",
+        secure: Boolean(process.env.NODE_ENV === "production" || process.env.RENDER),
+      },
+    },
   });
 
   return authInstance;

@@ -13,10 +13,12 @@ export async function connectDB() {
 
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/studiospace";
 
+  const isAtlas = uri.startsWith("mongodb+srv://");
+
   try {
     mongoClient = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 2500,
-      connectTimeoutMS: 2500,
+      serverSelectionTimeoutMS: isAtlas ? 10000 : 2500,
+      connectTimeoutMS: isAtlas ? 10000 : 2500,
     });
     await mongoClient.connect();
     const dbName = new URL(uri.replace("mongodb+srv://", "http://").replace("mongodb://", "http://")).pathname.replace(/^\//, "") || "studiospace";
