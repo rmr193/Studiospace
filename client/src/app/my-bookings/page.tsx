@@ -58,6 +58,17 @@ export default function MyBookingsPage() {
     };
   }, []);
 
+  // Accessibility: close cancellation modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && bookingToCancel) {
+        setBookingToCancel(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [bookingToCancel]);
+
   const handleConfirmCancel = async () => {
     if (!bookingToCancel) return;
     setCancelling(true);

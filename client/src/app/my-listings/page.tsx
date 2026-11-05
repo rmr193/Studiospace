@@ -45,6 +45,17 @@ export default function MyListingsPage() {
     };
   }, []);
 
+  // Accessibility: close delete modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && studioToDelete) {
+        setStudioToDelete(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [studioToDelete]);
+
   const handleConfirmDelete = async () => {
     if (!studioToDelete) return;
     setDeleting(true);

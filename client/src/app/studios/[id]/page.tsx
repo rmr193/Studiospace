@@ -119,6 +119,17 @@ export default function StudioDetailsPage() {
     }
   }, [bookingDate, studioId, fetchAvailability]);
 
+  // Accessibility: close booking modal on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && bookingModalOpen) {
+        setBookingModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [bookingModalOpen]);
+
   const handleOpenBookingModal = () => {
     if (!user) {
       toast.info("Please sign in to reserve studio hours.");
