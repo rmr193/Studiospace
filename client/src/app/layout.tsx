@@ -23,6 +23,15 @@ export const metadata: Metadata = {
   title: "StudioSpace | Creative Workspace & Production Studio Sharing Platform",
   description:
     "Discover, filter, inspect real-time slot availability, and book verified photography cyclorama lofts, cinema sound stages, 4K podcast lounges, SSL recording suites, and art workshops.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "32x32" },
+    ],
+    apple: [
+      { url: "/apple-icon.svg", type: "image/svg+xml" },
+    ],
+  },
 };
 
 export default function RootLayout({
