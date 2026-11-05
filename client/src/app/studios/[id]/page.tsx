@@ -674,6 +674,17 @@ export default function StudioDetailsPage() {
                 </div>
               </div>
 
+              {/* Call-Time Duration Indicator Badge */}
+              <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs">
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  Total Reserved Call Time:
+                </span>
+                <span className="font-bold text-brand-600 dark:text-brand-400">
+                  {totalHours} {totalHours === 1 ? "Hour" : "Hours"} ({formatHourLabel(startTime)} – {formatHourLabel(endTime)})
+                  {totalHours >= 8 ? " • Full Day Block" : ""}
+                </span>
+              </div>
+
               {/* Live Overlap Warning Banner */}
               {hasOverlapWithExisting && (
                 <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/35 flex items-start gap-2.5 text-xs text-amber-700 dark:text-amber-300">
