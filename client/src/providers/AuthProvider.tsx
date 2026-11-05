@@ -4,7 +4,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 import { toast } from "sonner";
 import { User } from "@/types";
 import { authClient } from "@/lib/auth-client";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, API_URL } from "@/lib/api";
 
 interface RegisterInput {
   name: string;
@@ -30,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Syncs an authenticated BetterAuth user with our backend HTTPOnly JWT cookie (/api/auth/jwt)
   const syncJwtSession = useCallback(
     async (payload: { email: string; name?: string; image?: string; role?: string }) => {
       const res = await apiFetch<{ success: boolean; token?: string; user: User }>("/api/auth/jwt", {
@@ -47,8 +46,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const refreshUser = useCallback(async () => {
+    // 0. Check if returning from Google OAuth completion bridge (?auth_token=...)
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      const oauthToken = url.searchParams.get("auth_token");
+      if (oauthToken) {
+        localStorage.setItem("studiospace_jwt_token", oauthToken);
+        url.searchParams.delete("auth_token");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+        toast.success("Signed in with Google!");
+      }
+    }
+
     try {
-      // 1. Verify existing HTTPOnly JWT cookie session via /api/auth/me
+      // 1. Verify existing HTTPOnly JWT cookie or Bearer token via /api/auth/me
       const meRes = await apiFetch<{ user: User }>("/api/auth/me", {
         method: "GET",
       });
@@ -57,11 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
     } catch {
-      // JWT cookie not present or expired; check BetterAuth session (e.g. after Google OAuth redirect)
+      // JWT session not valid; check BetterAuth session
     }
 
     try {
-      // 2. Check active BetterAuth session in MongoDB (e.g., returning from Google OAuth callback)
+      // 2. Check active BetterAuth session in MongoDB
       const { data: sessionData } = await authClient.getSession();
       if (sessionData?.user?.email) {
         await syncJwtSession({
@@ -125,7 +136,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(error?.message || "Registration failed. This email may already be registered.");
     }
 
-    // Sign out auto-session so the user logs in explicitly via /login
     try {
       await authClient.signOut();
     } catch {
@@ -133,12 +143,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Real BetterAuth Google OAuth flow
+  // Real BetterAuth Google OAuth flow with first-party completion bridge
   const loginWithGoogle = async (redirectPath = "/"): Promise<void> => {
-    const callbackURL =
+    const frontendTarget =
       typeof window !== "undefined"
         ? `${window.location.origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`
-        : "http://localhost:3000/";
+        : "https://studiospace-lyart.vercel.app/";
+
+    const callbackURL = `${API_URL}/api/auth/oauth-complete?redirect=${encodeURIComponent(frontendTarget)}`;
 
     const { error } = await authClient.signIn.social({
       provider: "google",
@@ -148,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) {
       throw new Error(
         error.message ||
-          "Google OAuth failed. Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in server/.env."
+          "Google OAuth failed. Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set."
       );
     }
   };

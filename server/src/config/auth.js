@@ -12,7 +12,9 @@ export function initBetterAuth(db) {
   const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
   const serverUrl =
     process.env.BETTER_AUTH_URL ||
-    (process.env.VERCEL_URL
+    (process.env.RENDER_EXTERNAL_URL
+      ? process.env.RENDER_EXTERNAL_URL
+      : process.env.VERCEL_URL
       ? `https://${process.env.VERCEL_URL}`
       : `http://localhost:${process.env.PORT || 5000}`);
 
@@ -20,16 +22,24 @@ export function initBetterAuth(db) {
     database: mongodbAdapter(db, {
       usePlural: true,
     }),
-    secret: process.env.BETTER_AUTH_SECRET,
+    secret:
+      process.env.BETTER_AUTH_SECRET || "studiospace_better_auth_secret_replace_in_production_2026",
     baseURL: serverUrl,
     trustedOrigins: [
       clientUrl,
+      serverUrl,
       "https://studiospace-lyart.vercel.app",
+      "https://studiospace-t70a.onrender.com",
       "http://localhost:3000",
       "http://127.0.0.1:3000",
       "http://localhost:3001",
+      "http://localhost:5000",
       "https://*.vercel.app",
+      "https://*.onrender.com",
     ],
+    account: {
+      skipStateCookieCheck: true,
+    },
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: false,
