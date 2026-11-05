@@ -176,6 +176,45 @@ router.get("/my-bookings", verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/bookings/stats — Protected: Returns summary metrics for user reservations
+router.get("/bookings/stats", verifyToken, async (req, res) => {
+  try {
+    const db = getDB();
+    const userEmail = req.user.email;
+    const bookings = await db
+      .collection("bookings")
+      .find({
+        userEmail: {
+          $regex: `^${userEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          $options: "i",
+        },
+      })
+      .toArray();
+
+    const totalBookings = bookings.length;
+    const confirmedCount = bookings.filter((b) => b.status === "Confirmed").length;
+    const pendingCount = bookings.filter((b) => b.status === "Pending").length;
+    const completedCount = bookings.filter((b) => b.status === "Completed").length;
+    const totalHoursBooked = bookings.reduce(
+      (sum, b) => sum + Math.max(0, (b.endTime || 0) - (b.startTime || 0)),
+      0
+    );
+    const totalSpent = bookings.reduce((sum, b) => sum + (Number(b.totalPrice) || 0), 0);
+
+    return res.status(200).json({
+      totalBookings,
+      confirmedCount,
+      pendingCount,
+      completedCount,
+      totalHoursBooked,
+      totalSpent,
+    });
+  } catch (error) {
+    console.error("Error fetching booking stats:", error);
+    return res.status(500).json({ message: "Failed to fetch booking statistics." });
+  }
+});
+
 // PATCH /api/bookings/:id/cancel — Protected: Updates booking status to "Cancelled" if "Pending"
 router.patch("/bookings/:id/cancel", verifyToken, async (req, res) => {
   try {
