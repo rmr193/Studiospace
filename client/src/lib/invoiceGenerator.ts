@@ -136,6 +136,18 @@ export function generateBookingInvoicePDF(booking: Booking) {
 
   doc.line(16, 222, 194, 222);
 
+  // Security Verification Hash Box
+  doc.setFillColor(248, 250, 252);
+  doc.setDrawColor(226, 232, 240);
+  doc.roundedRect(16, 228, 92, 14, 2, 2, "FD");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("VERIFICATION TOKEN:", 20, 233.5);
+  doc.setFont("courier", "bold");
+  doc.setTextColor(51, 65, 85);
+  doc.text(`AUTH-${booking._id.slice(0, 12).toUpperCase()}-${booking.status.toUpperCase()}`, 20, 239);
+  doc.setFont("helvetica", "normal");
+
   // Total Box
   doc.setFillColor(15, 23, 42);
   doc.roundedRect(114, 228, 80, 14, 2, 2, "F");
