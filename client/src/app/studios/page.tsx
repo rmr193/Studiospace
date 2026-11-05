@@ -46,6 +46,7 @@ function ExploreStudiosContent() {
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
   const [sortOption, setSortOption] = useState<string>(initialSort);
   const [maxPrice, setMaxPrice] = useState<string>("");
+  const [minCapacity, setMinCapacity] = useState<string>("");
   const [studios, setStudios] = useState<Studio[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -70,6 +71,9 @@ function ExploreStudiosContent() {
       if (maxPrice) {
         params.set("maxPrice", maxPrice);
       }
+      if (minCapacity) {
+        params.set("minCapacity", minCapacity);
+      }
       const data = await apiFetch<Studio[]>(`/api/studios?${params.toString()}`);
       setStudios(data);
     } catch (err) {
@@ -77,7 +81,7 @@ function ExploreStudiosContent() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery, sortOption, maxPrice]);
+  }, [selectedCategory, searchQuery, sortOption, maxPrice, minCapacity]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -103,6 +107,7 @@ function ExploreStudiosContent() {
     setSearchQuery("");
     setSortOption("newest");
     setMaxPrice("");
+    setMinCapacity("");
     router.replace("/studios", { scroll: false });
   };
 
@@ -174,6 +179,35 @@ function ExploreStudiosContent() {
                 </option>
                 <option value="300" className="bg-white dark:bg-slate-900">
                   Under $300 / hr
+                </option>
+              </select>
+            </div>
+
+            {/* Min Capacity Filter */}
+            <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+              <label htmlFor="min-capacity" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Crew Size:
+              </label>
+              <select
+                id="min-capacity"
+                value={minCapacity}
+                onChange={(e) => setMinCapacity(e.target.value)}
+                className="bg-transparent text-sm font-semibold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+              >
+                <option value="" className="bg-white dark:bg-slate-900">
+                  Any Crew Size
+                </option>
+                <option value="10" className="bg-white dark:bg-slate-900">
+                  10+ Crew
+                </option>
+                <option value="20" className="bg-white dark:bg-slate-900">
+                  20+ Crew
+                </option>
+                <option value="30" className="bg-white dark:bg-slate-900">
+                  30+ Crew
+                </option>
+                <option value="50" className="bg-white dark:bg-slate-900">
+                  50+ Commercial Crew
                 </option>
               </select>
             </div>
