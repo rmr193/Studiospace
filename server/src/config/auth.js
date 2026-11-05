@@ -12,13 +12,15 @@ export function initBetterAuth(db) {
   const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
   const serverUrl =
     process.env.BETTER_AUTH_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${process.env.PORT || 5000}`);
+    (process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : `http://localhost:${process.env.PORT || 5000}`);
 
   authInstance = betterAuth({
     database: mongodbAdapter(db, {
       usePlural: true,
     }),
-    secret: process.env.BETTER_AUTH_SECRET || "studiospace_better_auth_secret_replace_in_production_2026",
+    secret: process.env.BETTER_AUTH_SECRET,
     baseURL: serverUrl,
     trustedOrigins: [
       clientUrl,
@@ -35,8 +37,8 @@ export function initBetterAuth(db) {
     },
     socialProviders: {
       google: {
-        clientId: process.env.GOOGLE_CLIENT_ID || "demo-google-client-id",
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "demo-google-client-secret",
+        clientId: process.env.GOOGLE_CLIENT_ID || "",
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
       },
     },
     user: {
@@ -56,8 +58,13 @@ export function initBetterAuth(db) {
     },
     advanced: {
       defaultCookieAttributes: {
-        sameSite: process.env.NODE_ENV === "production" || process.env.RENDER ? "none" : "lax",
-        secure: Boolean(process.env.NODE_ENV === "production" || process.env.RENDER),
+        sameSite:
+          process.env.NODE_ENV === "production" || process.env.RENDER || process.env.VERCEL
+            ? "none"
+            : "lax",
+        secure: Boolean(
+          process.env.NODE_ENV === "production" || process.env.RENDER || process.env.VERCEL
+        ),
       },
     },
   });

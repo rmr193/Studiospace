@@ -13,14 +13,11 @@
 
 ---
 
-## 🔑 Examiner Test Credentials
+## 🔐 Authentication & User Onboarding
 
- Email verification barriers are disabled so examiners can sign in and test all host and creator flows immediately. You can also click the **"Auto-Fill"** button directly on the `/login` page.
-
-| Role | Email | Password | Pre-Seeded Data |
-| :--- | :--- | :--- | :--- |
-| **Primary Examiner / Studio Host** | `examiner@studiospace.io` | `StudioPassword123` | 5 Studio Listings, 3 Bookings (`Confirmed`, `Pending`, `Completed`), 2 Saved Wishlist Studios |
-| **Secondary Host / Creator** | `marcus@studiospace.io` | `CreatorPassword123` | 3 Studio Listings (SSL Suite, Atmos Stage, Foundry Lab) |
+StudioSpace uses **BetterAuth** (`mongodbAdapter`) synced with **HTTPOnly JWT Cookies**:
+- **Register / Sign In (`/register` & `/login`):** Create an account using Email & Password (with real-time uppercase, lowercase, and minimum length validation) or sign in with **Google OAuth 2.0**.
+- **Role & Capabilities:** Every authenticated account can both book creative studios (`/studios/[id]`, `/my-bookings`, `/wishlist`) and publish/manage their own studio listings (`/add-studio`, `/my-listings`).
 
 ---
 

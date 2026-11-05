@@ -1,22 +1,5 @@
 import { ObjectId } from "mongodb";
 
-export const EXAMINER_USERS = [
-  {
-    name: "Elena Vance",
-    email: "examiner@studiospace.io",
-    password: "StudioPassword123",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-    role: "host",
-  },
-  {
-    name: "Marcus Thorne",
-    email: "marcus@studiospace.io",
-    password: "CreatorPassword123",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
-    role: "host",
-  },
-];
-
 export const SEED_STUDIOS = [
   {
     _id: new ObjectId("6729a1000000000000000001"),
@@ -46,7 +29,7 @@ export const SEED_STUDIOS = [
     overview:
       "A 3,400 sq. ft. architectural daylight loft engineered for high-fashion editorials, commercial lookbooks, and product cinematography. Features a seamless 28ft x 24ft 3-Wall Cyclorama with 16-foot ceiling clearance, south-facing industrial casement windows with motorized blackout louvers, a dedicated Profoto Pro-11 strobe package, and a dual-chair hair & makeup vanity room.",
     rating: 4.9,
-    ownerEmail: "examiner@studiospace.io",
+    ownerEmail: "elena.vance@studiospace.io",
     ownerName: "Elena Vance",
     ownerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-18T10:00:00Z"),
@@ -79,7 +62,7 @@ export const SEED_STUDIOS = [
     overview:
       "Purpose-built NC-20 acoustically rated cinema sound stage with a pre-lit 40ft x 30ft chroma green & matte black cyc. Equipped with a motorized overhead truss carrying 12 ARRI SkyPanel S60-C fixtures, 400A 3-phase Cam-Lok power distribution, drive-in elephant doors for picture vehicles, and a private production office with fiber uplink.",
     rating: 5.0,
-    ownerEmail: "examiner@studiospace.io",
+    ownerEmail: "elena.vance@studiospace.io",
     ownerName: "Elena Vance",
     ownerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-20T14:30:00Z"),
@@ -111,7 +94,7 @@ export const SEED_STUDIOS = [
     overview:
       "Turnkey multi-camera video podcast and live-streaming lounge designed with warm mid-century walnut acoustic slat walls. Pre-patched with four Shure SM7B microphones on low-profile boom arms, a Rodecaster Pro II console, three cinema-grade Sony FX3 4K cameras feeding an ATEM Mini Extreme ISO switcher, and customizable RGBWW practical tube lighting.",
     rating: 4.9,
-    ownerEmail: "examiner@studiospace.io",
+    ownerEmail: "elena.vance@studiospace.io",
     ownerName: "Elena Vance",
     ownerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-22T09:15:00Z"),
@@ -143,7 +126,7 @@ export const SEED_STUDIOS = [
     overview:
       "World-class tracking and mixing environment built on a decoupled acoustic floating floor with custom broadband bass trapping. Anchored by a 32-channel Solid State Logic (SSL) Origin inline console, ATC SCM45A main monitors, a curated locker featuring vintage Neumann U87 Ai and Telefunken ELA M 251 microphones, and an isolated birch tracking booth.",
     rating: 4.9,
-    ownerEmail: "marcus@studiospace.io",
+    ownerEmail: "marcus.thorne@studiospace.io",
     ownerName: "Marcus Thorne",
     ownerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-24T16:00:00Z"),
@@ -175,7 +158,7 @@ export const SEED_STUDIOS = [
     overview:
       "Expansive 2,600 sq. ft. raw concrete art studio and scenic fabrication workshop tailored for fine artists, prop makers, ceramicists, and set designers. Features 18-foot sawtooth north-facing skylights, commercial HEPA fume extraction, oversized stainless washout sinks, movable 8ft butcher-block worktables, and street-level pallet jack access.",
     rating: 4.8,
-    ownerEmail: "marcus@studiospace.io",
+    ownerEmail: "marcus.thorne@studiospace.io",
     ownerName: "Marcus Thorne",
     ownerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-25T11:45:00Z"),
@@ -206,7 +189,7 @@ export const SEED_STUDIOS = [
     overview:
       "Precision commercial photography and culinary motion studio equipped with a 6-roller motorized Savage seamless backdrop wall, Broncolor high-speed flash generators for liquid freeze-motion, a full stainless chef's prep kitchen for food & beverage shoots, and a calibrated Eizo ColorEdge tethered workstation.",
     rating: 4.8,
-    ownerEmail: "examiner@studiospace.io",
+    ownerEmail: "elena.vance@studiospace.io",
     ownerName: "Elena Vance",
     ownerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-27T13:20:00Z"),
@@ -236,7 +219,7 @@ export const SEED_STUDIOS = [
     overview:
       "Certified 7.1.4 Dolby Atmos immersive mixing theatre and ADR/Foley stage for film post-production and spatial audio albums. Calibrated with Genelec The Ones coaxial monitors, an Avid S6 dual-operator console, six custom Foley floor surfaces, and a 150-inch acoustically transparent 4K laser projection screen.",
     rating: 4.7,
-    ownerEmail: "marcus@studiospace.io",
+    ownerEmail: "marcus.thorne@studiospace.io",
     ownerName: "Marcus Thorne",
     ownerPhoto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-29T15:00:00Z"),
@@ -266,64 +249,9 @@ export const SEED_STUDIOS = [
     overview:
       "Cutting-edge blackbox stage engineered for music videos, virtual production, and optical motion capture. Features a 360-degree acoustic blackout curtain track, overhead OptiTrack camera perimeter rig, dual RTX 6000 Ada Unreal Engine workstations, and full DMX universe lighting control.",
     rating: 4.8,
-    ownerEmail: "examiner@studiospace.io",
+    ownerEmail: "elena.vance@studiospace.io",
     ownerName: "Elena Vance",
     ownerPhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
     createdAt: new Date("2026-10-31T18:00:00Z"),
   },
 ];
-
-export const SEED_BOOKINGS = [
-  {
-    _id: new ObjectId("6729b2000000000000000001"),
-    studioId: "6729a1000000000000000001",
-    studioTitle: "Apex Daylight Loft & 3-Wall Cyclorama",
-    studioImage:
-      "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?auto=format&fit=crop&w=1200&q=85",
-    hourlyRate: 145,
-    securityDeposit: 300,
-    userEmail: "examiner@studiospace.io",
-    userName: "Elena Vance",
-    bookingDate: "2026-11-15",
-    startTime: 10,
-    endTime: 14,
-    totalPrice: 880,
-    status: "Confirmed",
-    createdAt: new Date("2026-11-01T10:30:00Z"),
-  },
-  {
-    _id: new ObjectId("6729b2000000000000000002"),
-    studioId: "6729a1000000000000000003",
-    studioTitle: "VoxHouse Broadcast Lounge & 4K Podcast Suite",
-    studioImage:
-      "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=1200&q=85",
-    hourlyRate: 95,
-    securityDeposit: 150,
-    userEmail: "examiner@studiospace.io",
-    userName: "Elena Vance",
-    bookingDate: "2026-11-18",
-    startTime: 13,
-    endTime: 16,
-    totalPrice: 435,
-    status: "Pending",
-    createdAt: new Date("2026-11-02T14:20:00Z"),
-  },
-  {
-    _id: new ObjectId("6729b2000000000000000003"),
-    studioId: "6729a1000000000000000004",
-    studioTitle: "Aether Analog Mastering & SSL Recording Suite",
-    studioImage:
-      "https://images.unsplash.com/photo-1598653222000-6b7b7a552625?auto=format&fit=crop&w=1200&q=85",
-    hourlyRate: 130,
-    securityDeposit: 250,
-    userEmail: "examiner@studiospace.io",
-    userName: "Elena Vance",
-    bookingDate: "2026-10-28",
-    startTime: 9,
-    endTime: 15,
-    totalPrice: 1030,
-    status: "Completed",
-    createdAt: new Date("2026-10-25T09:00:00Z"),
-  },
-];
-

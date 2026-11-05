@@ -5,7 +5,6 @@ import dotenv from "dotenv";
 import { toNodeHandler } from "better-auth/node";
 import { connectDB } from "./config/db.js";
 import { initBetterAuth, getBetterAuth } from "./config/auth.js";
-import { seedDatabase } from "./seed/seed.js";
 import authRoutes from "./routes/authRoutes.js";
 import studioRoutes from "./routes/studioRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
@@ -19,7 +18,6 @@ const PORT = process.env.PORT || 5000;
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Reflect origin to support credentials: true across localhost and Vercel deployments
       callback(null, origin || true);
     },
     credentials: true,
@@ -36,14 +34,12 @@ async function ensureInitialized() {
     initPromise = (async () => {
       const db = await connectDB();
       const auth = initBetterAuth(db);
-      await seedDatabase(db, auth, false);
       return { db, auth };
     })();
   }
   return initPromise;
 }
 
-// Middleware to ensure DB & BetterAuth are initialized before handling requests (Vercel Serverless ready)
 app.use(async (req, res, next) => {
   try {
     await ensureInitialized();
@@ -77,22 +73,7 @@ app.get("/", (req, res) => {
     name: "StudioSpace Production API",
     status: "online",
     version: "1.0.0",
-    endpoints: [
-      "POST /api/auth/jwt",
-      "POST /api/auth/logout",
-      "GET  /api/studios/featured",
-      "GET  /api/studios",
-      "GET  /api/studios/:id",
-      "GET  /api/my-listings",
-      "POST /api/studios",
-      "PATCH /api/studios/:id",
-      "DELETE /api/studios/:id",
-      "POST /api/bookings",
-      "GET  /api/my-bookings",
-      "PATCH /api/bookings/:id/cancel",
-      "POST /api/wishlist/toggle",
-      "GET  /api/wishlist",
-    ],
+    database: "MongoDB Atlas Connected",
   });
 });
 

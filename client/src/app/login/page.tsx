@@ -10,7 +10,6 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  KeyRound,
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,15 +28,7 @@ function LoginFormContent() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleForgotPassword = () => {
-    toast.info(
-      "Password reset via email is disabled during examiner review. Use the Examiner Quick-Fill credentials below to test immediately."
-    );
-  };
-
-  const handleFillExaminer = () => {
-    setEmail("examiner@studiospace.io");
-    setPassword("StudioPassword123");
-    toast.success("Filled Examiner Host credentials (examiner@studiospace.io).");
+    toast.info("Please contact StudioSpace Production Support to reset your account password.");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +44,8 @@ function LoginFormContent() {
       toast.success(`Welcome back to StudioSpace, ${user.name}!`);
       router.push(redirectPath);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to sign in. Please verify your credentials.";
+      const msg =
+        err instanceof Error ? err.message : "Failed to sign in. Please verify your credentials.";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -87,25 +79,6 @@ function LoginFormContent() {
           </p>
         </div>
 
-        {/* Examiner Quick-Fill Card */}
-        <div className="p-3.5 rounded-2xl bg-brand-500/10 border border-brand-500/25 flex items-center justify-between gap-3">
-          <div className="text-xs space-y-0.5">
-            <p className="font-bold text-brand-600 dark:text-brand-400 flex items-center gap-1.5">
-              <KeyRound className="w-3.5 h-3.5" /> Examiner Review Account
-            </p>
-            <p className="text-slate-600 dark:text-slate-300 font-mono">
-              examiner@studiospace.io / StudioPassword123
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={handleFillExaminer}
-            className="px-3 py-1.5 rounded-xl bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold shrink-0 transition-colors"
-          >
-            Auto-Fill
-          </button>
-        </div>
-
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
@@ -119,7 +92,7 @@ function LoginFormContent() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="examiner@studiospace.io"
+                placeholder="producer@productionhouse.io"
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-brand-500"
               />
             </div>
@@ -238,4 +211,3 @@ export default function LoginPage() {
     </Suspense>
   );
 }
-

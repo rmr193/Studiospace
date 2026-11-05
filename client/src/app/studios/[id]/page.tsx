@@ -69,7 +69,7 @@ export default function StudioDetailsPage() {
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
 
   // Booking Modal Form State
-  const [bookingDate, setBookingDate] = useState("2026-11-15");
+  const [bookingDate, setBookingDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [startTime, setStartTime] = useState<number>(10);
   const [endTime, setEndTime] = useState<number>(14);
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
