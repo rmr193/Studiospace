@@ -38,11 +38,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const syncJwtSession = useCallback(
     async (payload: { email: string; name?: string; image?: string; role?: string }) => {
-      const res = await apiFetch<{ success: boolean; user: User }>("/api/auth/jwt", {
+      const res = await apiFetch<{ success: boolean; token?: string; user: User }>("/api/auth/jwt", {
         method: "POST",
         body: JSON.stringify(payload),
       });
       setUser(res.user);
+      if (res.token) {
+        localStorage.setItem("studiospace_jwt_token", res.token);
+      }
       localStorage.setItem("studiospace_user_cache", JSON.stringify(res.user));
       return res.user;
     },
@@ -184,6 +187,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Ignore
     }
     localStorage.removeItem("studiospace_user_cache");
+    localStorage.removeItem("studiospace_jwt_token");
     setUser(null);
   };
 

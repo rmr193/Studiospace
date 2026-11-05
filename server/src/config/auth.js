@@ -10,7 +10,9 @@ export function initBetterAuth(db) {
   if (authInstance) return authInstance;
 
   const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
-  const serverUrl = process.env.BETTER_AUTH_URL || `http://localhost:${process.env.PORT || 5000}`;
+  const serverUrl =
+    process.env.BETTER_AUTH_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${process.env.PORT || 5000}`);
 
   authInstance = betterAuth({
     database: mongodbAdapter(db, {
@@ -23,6 +25,7 @@ export function initBetterAuth(db) {
       "http://localhost:3000",
       "http://127.0.0.1:3000",
       "http://localhost:3001",
+      "https://*.vercel.app",
     ],
     emailAndPassword: {
       enabled: true,
@@ -58,4 +61,3 @@ export function initBetterAuth(db) {
 export function getBetterAuth() {
   return authInstance;
 }
-

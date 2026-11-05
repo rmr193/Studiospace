@@ -5,8 +5,10 @@ import { ObjectId } from "mongodb";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_DIR = path.resolve(__dirname, "../../data");
-const DB_FILE = path.join(DATA_DIR, "studiospace-db.json");
+const BUNDLED_DATA_DIR = path.resolve(__dirname, "../../data");
+const BUNDLED_DB_FILE = path.join(BUNDLED_DATA_DIR, "studiospace-db.json");
+const DATA_DIR = process.env.VERCEL ? "/tmp" : BUNDLED_DATA_DIR;
+const DB_FILE = process.env.VERCEL ? "/tmp/studiospace-db.json" : BUNDLED_DB_FILE;
 
 function normalizeId(val) {
   if (val instanceof ObjectId) return val.toHexString();
@@ -427,8 +429,13 @@ export class LocalMongoDb {
       if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
       }
-      if (fs.existsSync(DB_FILE)) {
-        const raw = fs.readFileSync(DB_FILE, "utf-8");
+      const sourceFile = fs.existsSync(DB_FILE)
+        ? DB_FILE
+        : fs.existsSync(BUNDLED_DB_FILE)
+        ? BUNDLED_DB_FILE
+        : null;
+      if (sourceFile) {
+        const raw = fs.readFileSync(sourceFile, "utf-8");
         if (raw.trim()) {
           this.collections = deserializeFromDisk(raw);
         }

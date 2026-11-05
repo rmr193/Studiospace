@@ -6,7 +6,7 @@ import { verifyToken } from "../middleware/verifyToken.js";
 const router = express.Router();
 
 function getCookieOptions() {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
   return {
     httpOnly: true,
     secure: isProd,
@@ -74,6 +74,7 @@ router.post("/jwt", async (req, res) => {
 
     return res.status(200).json({
       success: true,
+      token,
       user: {
         id: String(user._id),
         name: user.name,
