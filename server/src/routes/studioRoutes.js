@@ -57,16 +57,30 @@ router.get("/studios/featured", async (req, res) => {
   }
 });
 
-// GET /api/studios — Fetch all studios with optional ?category=&search=&sort=
+// GET /api/studios — Fetch all studios with optional ?category=&search=&sort=&minPrice=&maxPrice=&minCapacity=
 router.get("/studios", async (req, res) => {
   try {
-    const { category, search, sort } = req.query;
+    const { category, search, sort, minPrice, maxPrice, minCapacity } = req.query;
     const db = getDB();
 
     const query = {};
     const normalizedCat = normalizeCategory(category);
     if (normalizedCat) {
       query.category = normalizedCat;
+    }
+
+    if (minPrice || maxPrice) {
+      query.hourlyRate = {};
+      if (minPrice && !Number.isNaN(Number(minPrice))) {
+        query.hourlyRate.$gte = Number(minPrice);
+      }
+      if (maxPrice && !Number.isNaN(Number(maxPrice))) {
+        query.hourlyRate.$lte = Number(maxPrice);
+      }
+    }
+
+    if (minCapacity && !Number.isNaN(Number(minCapacity))) {
+      query.maxCapacity = { $gte: Number(minCapacity) };
     }
 
     if (search && String(search).trim() !== "") {
