@@ -28,6 +28,14 @@ app.use(
 
 app.use(cookieParser());
 
+// Normalize duplicate leading slashes in URL path (e.g. //api/auth/jwt -> /api/auth/jwt)
+app.use((req, res, next) => {
+  if (req.url.startsWith("//")) {
+    req.url = req.url.replace(/^\/+/, "/");
+  }
+  next();
+});
+
 let initPromise = null;
 async function ensureInitialized() {
   if (!initPromise) {

@@ -83,7 +83,24 @@ router.get("/oauth-complete", async (req, res) => {
 // Challenge 1: POST /api/auth/jwt — Accepts { email }, signs JWT, sets HTTPOnly cookie
 router.post("/jwt", async (req, res) => {
   try {
-    const { email, name, image, role } = req.body;
+    let { email, name, image, role } = req.body || {};
+
+    if (!email) {
+      try {
+        const auth = getBetterAuth();
+        const sessionData = await auth.api.getSession({
+          headers: fromNodeHeaders(req.headers),
+        });
+        if (sessionData?.user?.email) {
+          email = sessionData.user.email;
+          name = name || sessionData.user.name;
+          image = image || sessionData.user.image;
+        }
+      } catch {
+        // Fall through
+      }
+    }
+
     if (!email) {
       return res.status(400).json({ message: "Email is required to issue a JWT." });
     }
@@ -98,6 +115,20 @@ router.post("/jwt", async (req, res) => {
         $options: "i",
       },
     });
+
+    if (!user) {
+      try {
+        const auth = getBetterAuth();
+        const sessionData = await auth.api.getSession({
+          headers: fromNodeHeaders(req.headers),
+        });
+        if (sessionData?.user?.email && sessionData.user.email.toLowerCase() === normalizedEmail) {
+          user = sessionData.user;
+        }
+      } catch {
+        // Fall through
+      }
+    }
 
     if (!user) {
       return res.status(401).json({
