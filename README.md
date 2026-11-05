@@ -7,6 +7,7 @@
 ## 🌐 Live Deployment URLs
 
 - **Live Frontend (Vercel):** [https://studiospace-lyart.vercel.app/](https://studiospace-lyart.vercel.app/)
+- **Live Backend API (Render):** [https://studiospace-t70a.onrender.com/](https://studiospace-t70a.onrender.com/)
 - **Client-Side Repository:** [https://github.com/rmr193/Studiospace/tree/main/client](https://github.com/rmr193/Studiospace/tree/main/client)
 - **Server-Side Repository:** [https://github.com/rmr193/Studiospace/tree/main/server](https://github.com/rmr193/Studiospace/tree/main/server)
 
