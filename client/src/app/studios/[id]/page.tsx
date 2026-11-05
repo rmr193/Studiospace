@@ -26,6 +26,7 @@ import {
 import { toast } from "sonner";
 import { Studio, BookedSlot } from "@/types";
 import { apiFetch, formatHourLabel } from "@/lib/api";
+import { calculateBookingTotals } from "@/lib/pricing";
 import { useAuth } from "@/providers/AuthProvider";
 
 import "swiper/css";
@@ -161,10 +162,17 @@ export default function StudioDetailsPage() {
     setBookingModalOpen(true);
   };
 
-  const totalHours = Math.max(0, endTime - startTime);
-  const hourlySubtotal = studio ? totalHours * studio.hourlyRate : 0;
-  const securityDeposit = studio ? studio.securityDeposit : 0;
-  const grandTotal = totalHours > 0 ? hourlySubtotal + securityDeposit : 0;
+  const {
+    hours: totalHours,
+    hourlySubtotal,
+    securityDeposit,
+    grandTotal,
+  } = calculateBookingTotals(
+    studio?.hourlyRate || 0,
+    studio?.securityDeposit || 0,
+    startTime,
+    endTime
+  );
 
   const hasOverlapWithExisting = bookedSlots.some(
     (slot) => slot.startTime < endTime && slot.endTime > startTime
