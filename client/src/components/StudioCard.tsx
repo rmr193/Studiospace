@@ -24,7 +24,9 @@ export function StudioCard({ studio }: { studio: Studio }) {
           <img
             src={studio.imageUrl}
             alt={studio.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 will-change-transform"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-transparent to-slate-950/20" />
 
