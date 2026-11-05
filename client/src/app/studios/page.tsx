@@ -45,6 +45,7 @@ function ExploreStudiosContent() {
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [searchQuery, setSearchQuery] = useState<string>(initialSearch);
   const [sortOption, setSortOption] = useState<string>(initialSort);
+  const [maxPrice, setMaxPrice] = useState<string>("");
   const [studios, setStudios] = useState<Studio[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -66,6 +67,9 @@ function ExploreStudiosContent() {
       if (sortOption) {
         params.set("sort", sortOption);
       }
+      if (maxPrice) {
+        params.set("maxPrice", maxPrice);
+      }
       const data = await apiFetch<Studio[]>(`/api/studios?${params.toString()}`);
       setStudios(data);
     } catch (err) {
@@ -73,7 +77,7 @@ function ExploreStudiosContent() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchQuery, sortOption]);
+  }, [selectedCategory, searchQuery, sortOption, maxPrice]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -98,6 +102,7 @@ function ExploreStudiosContent() {
     setSelectedCategory("All");
     setSearchQuery("");
     setSortOption("newest");
+    setMaxPrice("");
     router.replace("/studios", { scroll: false });
   };
 
@@ -142,8 +147,38 @@ function ExploreStudiosContent() {
             )}
           </div>
 
-          {/* Sort Dropdown */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          {/* Filters: Price Filter & Sort Dropdown */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            {/* Max Hourly Rate Filter */}
+            <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
+              <label htmlFor="max-price" className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Max Rate:
+              </label>
+              <select
+                id="max-price"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="bg-transparent text-sm font-semibold text-slate-900 dark:text-white focus:outline-none cursor-pointer"
+              >
+                <option value="" className="bg-white dark:bg-slate-900">
+                  Any Hourly Rate
+                </option>
+                <option value="100" className="bg-white dark:bg-slate-900">
+                  Under $100 / hr
+                </option>
+                <option value="150" className="bg-white dark:bg-slate-900">
+                  Under $150 / hr
+                </option>
+                <option value="200" className="bg-white dark:bg-slate-900">
+                  Under $200 / hr
+                </option>
+                <option value="300" className="bg-white dark:bg-slate-900">
+                  Under $300 / hr
+                </option>
+              </select>
+            </div>
+
+            {/* Sort Dropdown */}
             <div className="flex items-center gap-2 px-3.5 py-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
               <SlidersHorizontal className="w-4 h-4 text-brand-500 shrink-0" />
               <label htmlFor="studio-sort" className="text-xs font-bold uppercase tracking-wider text-slate-500">
