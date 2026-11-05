@@ -35,6 +35,7 @@ export function Navbar() {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,6 +48,32 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    if (pathname !== "/") {
+      setActiveSection("");
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        });
+      },
+      { threshold: 0.25, rootMargin: "-80px 0px -50% 0px" }
+    );
+
+    const ids = ["how-it-works", "about"];
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, [pathname]);
+
   const handleLogout = async () => {
     setDropdownOpen(false);
     setMobileMenuOpen(false);
@@ -55,9 +82,39 @@ export function Navbar() {
     router.push("/");
   };
 
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    if (href === "/") {
+      if (pathname === "/") {
+        e.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.history.pushState(null, "", "/");
+        setActiveSection("");
+      }
+      setMobileMenuOpen(false);
+      return;
+    }
+
+    if (href.startsWith("/#")) {
+      const targetId = href.replace("/#", "");
+      if (pathname === "/") {
+        e.preventDefault();
+        const element = document.getElementById(targetId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+          window.history.pushState(null, "", `#${targetId}`);
+        }
+      }
+      setMobileMenuOpen(false);
+    }
+  };
+
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
-    if (href.startsWith("/#")) return false;
+    if (href === "/#how-it-works") return pathname === "/" && activeSection === "how-it-works";
+    if (href === "/#about") return pathname === "/" && activeSection === "about";
+    if (href === "/") return pathname === "/" && !activeSection;
     return pathname?.startsWith(href);
   };
 
@@ -65,7 +122,11 @@ export function Navbar() {
     <header className="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
         {/* Left: Brand Logo */}
-        <Link href="/" className="flex items-center gap-3 group shrink-0">
+        <Link
+          href="/"
+          onClick={(e) => handleNavClick(e, "/")}
+          className="flex items-center gap-3 group shrink-0"
+        >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
             <Aperture className="w-5 h-5" />
           </div>
@@ -87,6 +148,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   active
                     ? "bg-brand-500 text-white shadow-sm shadow-brand-500/30"
@@ -244,7 +306,7 @@ export function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className={`px-4 py-2.5 rounded-xl text-sm font-semibold ${
                   isActive(link.href)
                     ? "bg-brand-500 text-white"

@@ -150,6 +150,18 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const targetId = window.location.hash.replace("#", "");
+      const el = document.getElementById(targetId);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth" });
+        }, 200);
+      }
+    }
+  }, []);
+
   return (
     <div className="space-y-24 pb-24">
       {/* 1. Hero Slider */}
