@@ -63,13 +63,10 @@ function LoginFormContent() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const user = await loginWithGoogle();
-      toast.success(`Signed in with Google as ${user.name}!`);
-      router.push(redirectPath);
+      await loginWithGoogle(redirectPath);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google authentication failed.";
       toast.error(msg);
-    } finally {
       setGoogleLoading(false);
     }
   };

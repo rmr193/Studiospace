@@ -33,31 +33,21 @@ router.post("/jwt", async (req, res) => {
     });
 
     if (!user) {
-      const newUser = {
-        name: name || normalizedEmail.split("@")[0],
-        email: normalizedEmail,
-        image:
-          image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        role: role || "host",
-        wishlist: [],
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      const result = await usersCol.insertOne(newUser);
-      user = { ...newUser, _id: result.insertedId };
-    } else {
-      // Ensure custom fields exist on BetterAuth user record
-      const updates = {};
-      if (!user.role) updates.role = role || "host";
-      if (!Array.isArray(user.wishlist)) updates.wishlist = [];
-      if (image && !user.image) updates.image = image;
-      if (name && !user.name) updates.name = name;
+      return res.status(401).json({
+        message: "Unauthorized: No registered BetterAuth user found for this email.",
+      });
+    }
 
-      if (Object.keys(updates).length > 0) {
-        await usersCol.updateOne({ _id: user._id }, { $set: updates });
-        user = { ...user, ...updates };
-      }
+    // Ensure custom fields exist on BetterAuth user record
+    const updates = {};
+    if (!user.role) updates.role = role || "host";
+    if (!Array.isArray(user.wishlist)) updates.wishlist = [];
+    if (image && !user.image) updates.image = image;
+    if (name && !user.name) updates.name = name;
+
+    if (Object.keys(updates).length > 0) {
+      await usersCol.updateOne({ _id: user._id }, { $set: updates });
+      user = { ...user, ...updates };
     }
 
     const secret = process.env.JWT_SECRET || "studiospace_jwt_secret_replace_in_production_2026";

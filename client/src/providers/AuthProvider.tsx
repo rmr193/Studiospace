@@ -13,18 +13,12 @@ interface RegisterInput {
   image?: string;
 }
 
-interface GoogleAccountProfile {
-  name: string;
-  email: string;
-  image: string;
-}
-
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   loginWithEmail: (email: string, password: string) => Promise<User>;
   registerWithEmail: (input: RegisterInput) => Promise<void>;
-  loginWithGoogle: (account?: GoogleAccountProfile) => Promise<User>;
+  loginWithGoogle: (redirectPath?: string) => Promise<void>;
   logout: () => Promise<void>;
   toggleWishlist: (studioId: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
@@ -36,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Syncs an authenticated BetterAuth user with our backend HTTPOnly JWT cookie (/api/auth/jwt)
   const syncJwtSession = useCallback(
     async (payload: { email: string; name?: string; image?: string; role?: string }) => {
       const res = await apiFetch<{ success: boolean; token?: string; user: User }>("/api/auth/jwt", {
@@ -46,7 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.token) {
         localStorage.setItem("studiospace_jwt_token", res.token);
       }
-      localStorage.setItem("studiospace_user_cache", JSON.stringify(res.user));
       return res.user;
     },
     []
@@ -54,20 +48,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      // 1. Check existing HTTPOnly JWT cookie session first
+      // 1. Verify existing HTTPOnly JWT cookie session via /api/auth/me
       const meRes = await apiFetch<{ user: User }>("/api/auth/me", {
         method: "GET",
       });
       if (meRes?.user) {
         setUser(meRes.user);
-        localStorage.setItem("studiospace_user_cache", JSON.stringify(meRes.user));
         return;
       }
     } catch {
-      // Cookie not present or expired; check BetterAuth session or cached user
+      // JWT cookie not present or expired; check BetterAuth session (e.g. after Google OAuth redirect)
     }
 
     try {
+      // 2. Check active BetterAuth session in MongoDB (e.g., returning from Google OAuth callback)
       const { data: sessionData } = await authClient.getSession();
       if (sessionData?.user?.email) {
         await syncJwtSession({
@@ -81,25 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // No active BetterAuth session
     }
 
-    // Check if user had an active local session that needs JWT cookie re-issued on cold start
-    const cachedRaw = typeof window !== "undefined" ? localStorage.getItem("studiospace_user_cache") : null;
-    if (cachedRaw) {
-      try {
-        const cachedUser = JSON.parse(cachedRaw) as User;
-        if (cachedUser?.email) {
-          await syncJwtSession({
-            email: cachedUser.email,
-            name: cachedUser.name,
-            image: cachedUser.image,
-            role: cachedUser.role,
-          });
-          return;
-        }
-      } catch {
-        localStorage.removeItem("studiospace_user_cache");
-      }
-    }
-
+    localStorage.removeItem("studiospace_jwt_token");
     setUser(null);
   }, [syncJwtSession]);
 
@@ -149,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error(error?.message || "Registration failed. This email may already be registered.");
     }
 
-    // Clear auto-session so the user logs in explicitly via /login as required
+    // Sign out auto-session so the user logs in explicitly via /login
     try {
       await authClient.signOut();
     } catch {
@@ -157,22 +133,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const loginWithGoogle = async (account?: GoogleAccountProfile): Promise<User> => {
-    const profile = account || {
-      name: "Aria Chen (Google Verified Creator)",
-      email: "aria.chen.creator@gmail.com",
-      image:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80",
-    };
+  // Real BetterAuth Google OAuth flow
+  const loginWithGoogle = async (redirectPath = "/"): Promise<void> => {
+    const callbackURL =
+      typeof window !== "undefined"
+        ? `${window.location.origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`
+        : "http://localhost:3000/";
 
-    const syncedUser = await syncJwtSession({
-      email: profile.email,
-      name: profile.name,
-      image: profile.image,
-      role: "host",
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL,
     });
 
-    return syncedUser;
+    if (error) {
+      throw new Error(
+        error.message ||
+          "Google OAuth failed. Ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in server/.env."
+      );
+    }
   };
 
   const logout = async () => {
@@ -186,7 +164,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignore
     }
-    localStorage.removeItem("studiospace_user_cache");
     localStorage.removeItem("studiospace_jwt_token");
     setUser(null);
   };
@@ -213,7 +190,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         wishlist: res.wishlist,
       };
       setUser(updatedUser);
-      localStorage.setItem("studiospace_user_cache", JSON.stringify(updatedUser));
 
       if (res.action === "added") {
         toast.success(res.message);
@@ -253,4 +229,3 @@ export function useAuth() {
   }
   return context;
 }
-

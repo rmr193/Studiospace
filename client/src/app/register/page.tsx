@@ -94,13 +94,10 @@ export default function RegisterPage() {
   const handleGoogleRegister = async () => {
     setGoogleLoading(true);
     try {
-      const user = await loginWithGoogle();
-      toast.success(`Welcome to StudioSpace, ${user.name}!`);
-      router.push("/");
+      await loginWithGoogle("/");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google sign-in failed.";
       toast.error(msg);
-    } finally {
       setGoogleLoading(false);
     }
   };
