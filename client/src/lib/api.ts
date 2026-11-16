@@ -1,37 +1,72 @@
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+import axios, { AxiosRequestConfig, AxiosError } from "axios";
 
+export const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(
+  /\/+$/,
+  ""
+);
+
+export const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  timeout: 20_000,
+  headers: { Accept: "application/json" },
+});
+
+export interface ApiError extends Error {
+  status?: number;
+}
+
+/**
+ * Thin Axios wrapper that keeps the original fetch-style call signature used
+ * across the app. Authentication always relies on the HTTPOnly `token` cookie,
+ * so `withCredentials` is enabled instead of reading a token from localStorage.
+ */
 export async function apiFetch<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  const url = endpoint.startsWith("http") ? endpoint : `${API_URL}${cleanEndpoint}`;
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("studiospace_jwt_token") : null;
+  const url = endpoint.startsWith("http")
+    ? endpoint
+    : endpoint.startsWith("/")
+      ? endpoint
+      : `/${endpoint}`;
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers as Record<string, string>),
+  const body = options.body;
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
+
+  const config: AxiosRequestConfig = {
+    url,
+    method: (options.method as AxiosRequestConfig["method"]) || "GET",
+    headers: {
+      ...(body && !isFormData ? { "Content-Type": "application/json" } : {}),
+      ...((options.headers as Record<string, string>) || {}),
+    },
+    data: body,
+    withCredentials: true,
+    signal: options.signal as AbortSignal | undefined,
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    credentials: "include",
-  });
+  try {
+    const response = await api.request<T>(config);
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      const message =
+        axiosError.response?.data?.message ||
+        (axiosError.code === "ECONNABORTED"
+          ? "The request timed out. Please try again."
+          : axiosError.response
+            ? `Request failed with status ${axiosError.response.status}`
+            : "Cannot reach the StudioSpace API. Check your connection and try again.");
 
-  const data = await response.json().catch(() => ({}));
+      const apiError: ApiError = new Error(message);
+      apiError.status = axiosError.response?.status;
+      throw apiError;
+    }
 
-  if (!response.ok) {
-    const err = new Error(data?.message || `Request failed with status ${response.status}`) as Error & {
-      status?: number;
-    };
-    err.status = response.status;
-    throw err;
+    throw error;
   }
-
-  return data as T;
 }
 
 export async function uploadImageToImgBB(file: File): Promise<string> {
@@ -71,4 +106,3 @@ export function formatHourLabel(hour: number): string {
   if (h === 12) return "12:00 PM";
   return h > 12 ? `${h - 12}:00 PM` : `${h}:00 AM`;
 }
-

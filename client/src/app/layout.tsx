@@ -42,7 +42,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${spaceGrotesk.variable} ${plusJakarta.variable}`}
+      className={`${spaceGrotesk.variable} ${plusJakarta.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen flex flex-col font-sans bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">

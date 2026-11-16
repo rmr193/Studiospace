@@ -8,6 +8,7 @@ import {
   Sun,
   Moon,
   PlusCircle,
+  LayoutDashboard,
   LayoutGrid,
   CalendarCheck,
   Heart,
@@ -231,6 +232,14 @@ export function Navbar() {
 
                   <div className="py-1.5 px-2 space-y-0.5">
                     <Link
+                      href="/dashboard"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
+                    >
+                      <LayoutDashboard className="w-4 h-4 text-brand-500" />
+                      Production Dashboard
+                    </Link>
+                    <Link
                       href="/add-studio"
                       onClick={() => setDropdownOpen(false)}
                       className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
@@ -320,6 +329,13 @@ export function Navbar() {
 
           {user ? (
             <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900"
+              >
+                <LayoutDashboard className="w-4 h-4 text-brand-500" /> Production Dashboard
+              </Link>
               <Link
                 href="/add-studio"
                 onClick={() => setMobileMenuOpen(false)}

@@ -64,6 +64,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/dashboard" className="hover:text-brand-500 transition-colors">
+                  Production Dashboard
+                </Link>
+              </li>
+              <li>
                 <Link href="/add-studio" className="hover:text-brand-500 transition-colors">
                   Host Your Space
                 </Link>
@@ -169,6 +174,27 @@ export function Footer() {
           <p className="text-xs text-slate-500 dark:text-slate-400">
             © {new Date().getFullYear()} StudioSpace Production Marketplace Inc. All rights reserved.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+            <Link
+              href="/terms"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors"
+            >
+              Terms of Service
+            </Link>
+            <Link
+              href="/studios"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors"
+            >
+              Browse Studios
+            </Link>
+            <Link
+              href="/dashboard"
+              className="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-brand-500 transition-colors"
+            >
+              Dashboard
+            </Link>
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Official New X Logo (NOT Twitter Bird) */}

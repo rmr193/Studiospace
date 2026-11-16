@@ -1,51 +1,37 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React from "react";
+import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from "next-themes";
 
 type Theme = "light" | "dark";
 
-interface ThemeContextType {
-  theme: Theme;
-  toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
-
+/**
+ * App-wide theme provider backed by next-themes. The selected theme is
+ * persisted under the same `studiospace-theme` storage key the app has always
+ * used, and the hook below keeps the existing `useTheme()` API stable.
+ */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("studiospace-theme") as Theme | null;
-    const initialTheme: Theme = saved === "light" || saved === "dark" ? saved : "dark";
-    setThemeState(initialTheme);
-    document.documentElement.classList.toggle("dark", initialTheme === "dark");
-    setMounted(true);
-  }, []);
-
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem("studiospace-theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme: mounted ? theme : "dark", toggleTheme, setTheme }}>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem={false}
+      storageKey="studiospace-theme"
+      disableTransitionOnChange
+    >
       {children}
-    </ThemeContext.Provider>
+    </NextThemesProvider>
   );
 }
 
 export function useTheme() {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
-  return context;
-}
+  const { theme, setTheme, resolvedTheme } = useNextTheme();
+  const activeTheme: Theme =
+    resolvedTheme === "light" || theme === "light" ? "light" : "dark";
 
+  return {
+    theme: activeTheme,
+    setTheme: (nextTheme: Theme) => setTheme(nextTheme),
+    toggleTheme: () => setTheme(activeTheme === "dark" ? "light" : "dark"),
+  };
+}
