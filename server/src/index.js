@@ -15,10 +15,33 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+app.set("trust proxy", 1);
+
+const allowedOrigins = new Set(
+  [
+    process.env.CLIENT_URL || "http://localhost:3000",
+    "https://studiospace-lyart.vercel.app",
+    "https://studiospace-t70a.onrender.com",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+  ]
+    .flatMap((value) => String(value).split(","))
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      callback(null, origin || true);
+      // Requests without an Origin header (server-to-server calls, health
+      // checks) are allowed. Browser origins must be explicitly trusted so
+      // credentialed requests cannot be made from arbitrary sites.
+      if (!origin || allowedOrigins.has(origin)) {
+        return callback(null, true);
+      }
+      return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

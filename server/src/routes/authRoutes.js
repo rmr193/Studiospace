@@ -21,20 +21,58 @@ function getCookieOptions() {
   };
 }
 
-// First-party OAuth completion bridge for cross-domain (Vercel <-> Render) deployments
-router.get("/oauth-complete", async (req, res) => {
-  const fallbackClient = process.env.CLIENT_URL || "https://studiospace-lyart.vercel.app";
-  const redirectTarget = req.query.redirect ? String(req.query.redirect) : fallbackClient;
+function getAllowedClientOrigins() {
+  return [
+    process.env.CLIENT_URL,
+    "https://studiospace-lyart.vercel.app",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+  ]
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(","))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+function safeRedirectTarget(rawTarget) {
+  const fallback = getAllowedClientOrigins()[0] || "https://studiospace-lyart.vercel.app";
+  if (!rawTarget) return fallback;
 
   try {
-    const auth = getBetterAuth();
+    const candidate = new URL(String(rawTarget));
+    if (getAllowedClientOrigins().includes(candidate.origin)) {
+      return candidate.toString();
+    }
+  } catch {
+    // Invalid URL — fall through to the trusted fallback.
+  }
+
+  return fallback;
+}
+
+function serializeUser(user) {
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    image:
+      user.image ||
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
+    role: user.role || "host",
+    wishlist: (user.wishlist || []).map((id) => String(id)),
+    createdAt: user.createdAt,
+  };
+}
+
+async function getSessionUser(req) {
+  const auth = getBetterAuth();
+  if (!auth) return null;
+
+  try {
     const sessionData = await auth.api.getSession({
       headers: fromNodeHeaders(req.headers),
     });
-
-    if (!sessionData?.user?.email) {
-      return res.redirect(`${ fallbackClient }/login?error=oauth_session_missing`);
-    }
+    if (!sessionData?.user?.email) return null;
 
     const normalizedEmail = sessionData.user.email.trim().toLowerCase();
     const db = getDB();
@@ -47,133 +85,85 @@ router.get("/oauth-complete", async (req, res) => {
       },
     });
 
-    if (user) {
-      const updates = {};
-      if (!user.role) updates.role = "host";
-      if (!Array.isArray(user.wishlist)) updates.wishlist = [];
-      if (Object.keys(updates).length > 0) {
-        await usersCol.updateOne({ _id: user._id }, { $set: updates });
-        user = { ...user, ...updates };
-      }
-    }
+    if (!user) return null;
 
-    const secret = process.env.JWT_SECRET || "studiospace_jwt_secret_replace_in_production_2026";
-    const token = jwt.sign(
-      {
-        id: String(user?._id || sessionData.user.id),
-        email: normalizedEmail,
-        name: user?.name || sessionData.user.name,
-        role: user?.role || "host",
-      },
-      secret,
-      { expiresIn: "7d" }
-    );
-
-    res.cookie("token", token, getCookieOptions());
-
-    const redirectUrl = new URL(redirectTarget);
-    redirectUrl.searchParams.set("auth_token", token);
-    return res.redirect(redirectUrl.toString());
-  } catch (error) {
-    console.error("OAuth completion error:", error);
-    return res.redirect(`${fallbackClient}/login?error=oauth_failed`);
-  }
-});
-
-// Challenge 1: POST /api/auth/jwt — Accepts { email }, signs JWT, sets HTTPOnly cookie
-router.post("/jwt", async (req, res) => {
-  try {
-    let { email, name, image, role } = req.body || {};
-
-    if (!email) {
-      try {
-        const auth = getBetterAuth();
-        const sessionData = await auth.api.getSession({
-          headers: fromNodeHeaders(req.headers),
-        });
-        if (sessionData?.user?.email) {
-          email = sessionData.user.email;
-          name = name || sessionData.user.name;
-          image = image || sessionData.user.image;
-        }
-      } catch {
-        // Fall through
-      }
-    }
-
-    if (!email) {
-      return res.status(400).json({ message: "Email is required to issue a JWT." });
-    }
-
-    const normalizedEmail = String(email).trim().toLowerCase();
-    const db = getDB();
-    const usersCol = db.collection("users");
-
-    let user = await usersCol.findOne({
-      email: {
-        $regex: `^${normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-        $options: "i",
-      },
-    });
-
-    if (!user) {
-      try {
-        const auth = getBetterAuth();
-        const sessionData = await auth.api.getSession({
-          headers: fromNodeHeaders(req.headers),
-        });
-        if (sessionData?.user?.email && sessionData.user.email.toLowerCase() === normalizedEmail) {
-          user = sessionData.user;
-        }
-      } catch {
-        // Fall through
-      }
-    }
-
-    if (!user) {
-      return res.status(401).json({
-        message: "Unauthorized: No registered BetterAuth user found for this email.",
-      });
-    }
-
-    // Ensure custom fields exist on BetterAuth user record
+    // Make sure custom profile fields exist for accounts created before they
+    // were added to the BetterAuth user schema.
     const updates = {};
-    if (!user.role) updates.role = role || "host";
+    if (!user.role) updates.role = "host";
     if (!Array.isArray(user.wishlist)) updates.wishlist = [];
-    if (image && !user.image) updates.image = image;
-    if (name && !user.name) updates.name = name;
+    if (!user.image && sessionData.user.image) updates.image = sessionData.user.image;
 
     if (Object.keys(updates).length > 0) {
       await usersCol.updateOne({ _id: user._id }, { $set: updates });
       user = { ...user, ...updates };
     }
 
-    const secret = process.env.JWT_SECRET || "studiospace_jwt_secret_replace_in_production_2026";
-    const payload = {
+    return user;
+  } catch (error) {
+    console.error("Unable to resolve BetterAuth session:", error);
+    return null;
+  }
+}
+
+function signSessionToken(user) {
+  const secret = process.env.JWT_SECRET || "studiospace_jwt_secret_replace_in_production_2026";
+  return jwt.sign(
+    {
       id: String(user._id),
       email: user.email,
       name: user.name,
       role: user.role || "host",
-    };
+    },
+    secret,
+    { expiresIn: "7d" }
+  );
+}
 
-    const token = jwt.sign(payload, secret, { expiresIn: "7d" });
+// First-party OAuth completion bridge for cross-domain (Vercel <-> Render)
+// deployments. The BetterAuth session cookie is set on the API origin, so this
+// endpoint converts it into the short-lived API JWT cookie before handing the
+// user back to the frontend.
+router.get("/oauth-complete", async (req, res) => {
+  const redirectTarget = safeRedirectTarget(req.query.redirect);
 
-    res.cookie("token", token, getCookieOptions());
+  try {
+    const user = await getSessionUser(req);
+    if (!user) {
+      const target = new URL(redirectTarget);
+      target.pathname = "/login";
+      target.search = "?error=oauth_session_missing";
+      return res.redirect(target.toString());
+    }
+
+    res.cookie("token", signSessionToken(user), getCookieOptions());
+    return res.redirect(redirectTarget);
+  } catch (error) {
+    console.error("OAuth completion error:", error);
+    const target = new URL(safeRedirectTarget(null));
+    target.pathname = "/login";
+    target.search = "?error=oauth_failed";
+    return res.redirect(target.toString());
+  }
+});
+
+// POST /api/auth/jwt — Exchanges a valid BetterAuth session for the HTTPOnly
+// API JWT cookie. The email is never accepted from the request body: identity
+// always comes from the verified BetterAuth session.
+router.post("/jwt", async (req, res) => {
+  try {
+    const user = await getSessionUser(req);
+    if (!user) {
+      return res.status(401).json({
+        message: "Unauthorized: a valid BetterAuth session is required.",
+      });
+    }
+
+    res.cookie("token", signSessionToken(user), getCookieOptions());
 
     return res.status(200).json({
       success: true,
-      token,
-      user: {
-        id: String(user._id),
-        name: user.name,
-        email: user.email,
-        image:
-          user.image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        role: user.role || "host",
-        wishlist: (user.wishlist || []).map((id) => String(id)),
-        createdAt: user.createdAt,
-      },
+      user: serializeUser(user),
     });
   } catch (error) {
     console.error("Error issuing JWT:", error);
@@ -181,8 +171,18 @@ router.post("/jwt", async (req, res) => {
   }
 });
 
-// Challenge 1: POST /api/auth/logout — Clears the HTTPOnly JWT cookie
-router.post("/logout", (req, res) => {
+// POST /api/auth/logout — Revokes the BetterAuth session and clears the JWT cookie
+router.post("/logout", async (req, res) => {
+  try {
+    const auth = getBetterAuth();
+    if (auth) {
+      await auth.api.signOut({ headers: fromNodeHeaders(req.headers) });
+    }
+  } catch {
+    // The local cookie still needs to be cleared even if the remote session
+    // was already revoked.
+  }
+
   const isProd =
     process.env.NODE_ENV === "production" ||
     Boolean(process.env.VERCEL) ||
@@ -202,7 +202,7 @@ router.get("/me", verifyToken, async (req, res) => {
     const db = getDB();
     const user = await db.collection("users").findOne({
       email: {
-        $regex: `^${req.user.email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+        $regex: `^${String(req.user.email || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
         $options: "i",
       },
     });
@@ -211,19 +211,7 @@ router.get("/me", verifyToken, async (req, res) => {
       return res.status(401).json({ message: "User account no longer exists." });
     }
 
-    return res.status(200).json({
-      user: {
-        id: String(user._id),
-        name: user.name,
-        email: user.email,
-        image:
-          user.image ||
-          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80",
-        role: user.role || "host",
-        wishlist: (user.wishlist || []).map((id) => String(id)),
-        createdAt: user.createdAt,
-      },
-    });
+    return res.status(200).json({ user: serializeUser(user) });
   } catch (error) {
     console.error("Error fetching current user:", error);
     return res.status(500).json({ message: "Failed to verify session." });
