@@ -120,9 +120,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Real BetterAuth Google OAuth flow with a first-party completion bridge.
   const loginWithGoogle = async (redirectPath = "/"): Promise<void> => {
+    const safePath =
+      redirectPath.startsWith("/") && !redirectPath.startsWith("//") ? redirectPath : "/";
     const frontendTarget =
       typeof window !== "undefined"
-        ? `${window.location.origin}${redirectPath.startsWith("/") ? redirectPath : `/${redirectPath}`}`
+        ? `${window.location.origin}${safePath}`
         : "https://studiospace-lyart.vercel.app/";
 
     const callbackURL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/oauth-complete?redirect=${encodeURIComponent(frontendTarget)}`;

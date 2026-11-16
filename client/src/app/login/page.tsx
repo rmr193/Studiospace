@@ -18,7 +18,11 @@ import { useAuth } from "@/providers/AuthProvider";
 function LoginFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectPath = searchParams.get("redirect") || "/";
+  const requestedRedirect = searchParams.get("redirect") || "/";
+  const redirectPath =
+    requestedRedirect.startsWith("/") && !requestedRedirect.startsWith("//")
+      ? requestedRedirect
+      : "/";
   const { loginWithEmail, loginWithGoogle } = useAuth();
 
   const [email, setEmail] = useState("");
