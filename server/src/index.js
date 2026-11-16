@@ -82,7 +82,7 @@ app.use(async (req, res, next) => {
 });
 
 // 1. Custom JWT & Session Endpoints (/api/auth/jwt, /api/auth/logout, /api/auth/me)
-app.use("/api/auth", express.json(), authRoutes);
+app.use("/api/auth", express.json({ limit: "10mb" }), authRoutes);
 
 // 2. BetterAuth Handler for /api/auth/* (sign-up/email, sign-in/email, get-session, sign-out, social)
 app.all("/api/auth/*", (req, res) => {
